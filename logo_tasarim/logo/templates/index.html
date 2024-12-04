@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Image Generator</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Generate Image from Text Prompt</h1>
+
+    
+    <form class="prompt-section" method="POST">
+        {% csrf_token %}
+        <input type="text" class="prompt" id="user_input" name="prompt" autocomplete="off" placeholder="Say something creative...">
+        <button type="submit" class="send-button">Send</button>
+    </form>
+    <img class="image" src="" alt="bos" width="300" height="300">
+</body>
+<script>
+let generatingImage = false;
+
+const input = document.querySelector('.prompt');
+
+document.querySelector('.prompt-section').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    generatingImage = true;    
+
+    const prompt = "Make a logo for" +  document.getElementById('user_input').value;
+    document.getElementById('user_input').value = '';
+    
+
+
+    try{
+        // AJAX isteği gönder
+        const response = await fetch('/home/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                prompt: prompt,
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+        }
+
+        const data = await response.json();
+
+        document.querySelector(".image").src = `data:image/png;base64,${data.image_data}`;
+
+
+        generatingImage = false;
+    }catch(error){
+        console.error(error)
+    }
+});
+</script>
+</html>
